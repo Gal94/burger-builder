@@ -21,10 +21,15 @@ class BurgerBuilder extends Component {
     },
     totalPrice: 4,
     purchasable: false,
+    purchasing: false,
+  };
+
+  purchaseHandler = () => {
+    this.setState({ purchasing: true });
   };
 
   //Checks the amount of ingredients to see if the burger is purchasable or not
-  updatePurchase(updatedIngredients) {
+  updatePurchase = (updatedIngredients) => {
     const ingredients = { ...updatedIngredients };
     //Create an array of the keys and map through it
     const sum = Object.keys(ingredients)
@@ -36,7 +41,7 @@ class BurgerBuilder extends Component {
         return currentEl + newSum;
       }, 0);
     this.setState({ purchasable: sum > 0 });
-  }
+  };
 
   addIngredientHandler = (type) => {
     const oldCount = this.state.ingredients[type];
@@ -66,6 +71,14 @@ class BurgerBuilder extends Component {
     this.updatePurchase(updatedIngredients);
   };
 
+  purchaseCancelHandler = () => {
+    this.setState({ purchasing: false });
+  };
+
+  purchaseContinueHandler = () => {
+    alert(':)');
+  };
+
   render() {
     const disabledInfo = {
       ...this.state.ingredients,
@@ -76,13 +89,22 @@ class BurgerBuilder extends Component {
 
     return (
       <React.Fragment>
-        <Modal>
-          <OrderSummary ingredients={this.state.ingredients} />
+        <Modal
+          show={this.state.purchasing}
+          modalClosed={this.purchaseCancelHandler}
+        >
+          <OrderSummary
+            ingredients={this.state.ingredients}
+            cancelOrder={this.purchaseCancelHandler}
+            continueOrder={this.purchaseContinueHandler}
+            totalPrice={this.state.totalPrice}
+          />
         </Modal>
         <Burger ingredients={this.state.ingredients} />
         <BuildControls
           price={this.state.totalPrice}
           purchasable={this.state.purchasable}
+          purchasing={this.purchaseHandler}
           buttonsInfo={disabledInfo}
           ingredientAdded={this.addIngredientHandler}
           ingredientRemoved={this.removeIngredientHandler}
