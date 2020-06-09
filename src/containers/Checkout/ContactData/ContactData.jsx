@@ -3,20 +3,79 @@ import Button from '../../../components/UI/Button/Button';
 import classes from './ContactData.module.css';
 import axios from '../../../axios-orders';
 import Spinner from '../../../components/UI/Spinner/Spinner';
+import Input from '../../../components/UI/Input/Input';
 
 class ContactData extends Component {
   state = {
-    name: '',
-    email: '',
-    address: {
-      streed: '',
-      postalCode: '',
+    orderForm: {
+      name: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'Your name',
+          label: 'Name',
+        },
+        value: '',
+      },
+      street: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'Street',
+          label: 'Full Address',
+        },
+        value: '',
+      },
+      zipCode: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'ZIP Code',
+          label: 'ZIP Code',
+        },
+        value: '',
+      },
+      country: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'text',
+          placeholder: 'Country',
+          label: 'Country',
+        },
+        value: '',
+      },
+      email: {
+        elementType: 'input',
+        elementConfig: {
+          type: 'email',
+          placeholder: 'Your E-Mail',
+          label: 'E-Mail',
+        },
+        value: '',
+      },
+      deliveryMethod: {
+        elementType: 'select',
+        elementConfig: {
+          options: [
+            { value: 'fastest', displayValue: 'Fastest' },
+            { value: 'cheapest', displayValue: 'Cheapest' },
+          ],
+          label: 'Delivery Method',
+        },
+        value: '',
+      },
     },
     loading: false,
   };
 
   orderHandler = async (event) => {
     event.preventDefault();
+    const formData = {};
+    for (let formElementIdentifier in this.state.orderForm) {
+      formData[formElementIdentifier] = this.state.orderForm[
+        formElementIdentifier
+      ].value;
+    }
     this.setState({ loading: true });
     //alert(':)');
     //.json is only used in firebase databases
@@ -24,16 +83,7 @@ class ContactData extends Component {
       ingredients: this.props.ingredients,
       //Price usually is being calculated in the back end
       price: this.props.totalPrice,
-      customer: {
-        name: 'Gal Y',
-        address: {
-          street: 'My string13',
-          zipCode: '74362',
-          country: 'Israel',
-        },
-        email: 'test@test.com',
-      },
-      deliveryMethod: 'fastest',
+      orderData: formData,
     };
     try {
       const response = await axios.post('/orders.json', order);
@@ -45,37 +95,43 @@ class ContactData extends Component {
     }
   };
 
+  inputChangedHandler = (event, inputIdentifier) => {
+    //Deep copy the orderForm
+    const updatedOrderForm = { ...this.state.orderForm };
+    //Deep copy the input option
+    const updatedFormElement = { ...updatedOrderForm[inputIdentifier] };
+
+    updatedFormElement.value = event.target.value;
+    updatedOrderForm[inputIdentifier] = updatedFormElement;
+    this.setState({ orderForm: updatedOrderForm });
+  };
+
   render() {
+    const formElementsArray = [];
+    for (let key in this.state.orderForm) {
+      formElementsArray.push({
+        id: key,
+        config: this.state.orderForm[key],
+      });
+    }
+
     let form = (
-      <form>
-        <h4>Enter your Contact Data</h4>
-        <input
-          className={classes.Input}
-          type="text"
-          name="name"
-          placeholder="Your name"
-        />
-        <input
-          className={classes.Input}
-          type="email"
-          name="email"
-          placeholder="Your email"
-        />
-        <input
-          className={classes.Input}
-          type="text"
-          name="street"
-          placeholder="Your street"
-        />
-        <input
-          className={classes.Input}
-          type="text"
-          name="postalCode"
-          placeholder="postalCode"
-        />
-        <Button btnType="Success" action={this.orderHandler}>
-          ORDER
-        </Button>
+      <form onSubmit={this.orderHandler}>
+        {formElementsArray.map((formElement) => {
+          return (
+            <Input
+              key={formElement.id}
+              label={formElement.config.elementConfig.label}
+              elementType={formElement.config.elementType}
+              elementConfig={formElement.config.elementConfig}
+              value={formElement.config.value}
+              changed={(event) =>
+                this.inputChangedHandler(event, formElement.id)
+              }
+            />
+          );
+        })}
+        <Button btnType="Success">ORDER</Button>
       </form>
     );
 
@@ -87,3 +143,10 @@ class ContactData extends Component {
 }
 
 export default ContactData;
+
+/* onChange executes this anonymous function while automatically passing an event to it - 
+    then invokes the handler
+    
+  changed={(event) =>
+  this.inputChangedHandler(event, formElement.id)
+*/
