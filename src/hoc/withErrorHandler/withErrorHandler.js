@@ -20,6 +20,7 @@ const WithErrorHandler = (WrappedComponent, axios) => {
       );
     }
 
+    //When moving to other pages in the app eject the interceptors to avoid memory leaks
     componentWillUnmount() {
       axios.interceptors.request.eject(this.reqInterceptor);
       axios.interceptors.response.eject(this.reqInterceptor);

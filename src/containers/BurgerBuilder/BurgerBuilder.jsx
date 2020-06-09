@@ -83,37 +83,31 @@ class BurgerBuilder extends Component {
     this.updatePurchase(updatedIngredients);
   };
 
+  //Executes when clicking on the backdrop, returns to main screen
   purchaseCancelHandler = () => {
     this.setState({ purchasing: false });
   };
 
+  //Executes when clicking the "ORDER NOW" button
   purchaseContinueHandler = async () => {
-    this.setState({ loading: true });
-    //alert(':)');
-    //.json is only used in firebase databases
-    const order = {
-      ingredients: this.state.ingredients,
-      //Price usually is being calculated in the back end
-      price: this.state.totalPrice,
-      customer: {
-        name: 'Gal Y',
-        address: {
-          street: 'My string13',
-          zipCode: '74362',
-          country: 'Israel',
-        },
-        email: 'test@test.com',
-      },
-      deliveryMethod: 'fastest',
-    };
-    try {
-      const response = await axios.post('/orders.json', order);
-      this.setState({ loading: false, purchasing: false });
-      console.log(response);
-    } catch (e) {
-      console.log(e);
-      this.setState({ loading: false, purchasing: false });
+    //Create the parameters query
+    const queryParamas = [];
+    for (let i in this.state.ingredients) {
+      queryParamas.push(
+        encodeURIComponent(i) +
+          '=' +
+          encodeURIComponent(this.state.ingredients[i])
+      );
     }
+    queryParamas.push('price=' + this.state.totalPrice);
+    //add & after each element in the array when converting to a string
+    const queryString = queryParamas.join('&');
+
+    //Forwards page to /checkout
+    this.props.history.push({
+      pathname: '/checkout',
+      search: '?' + queryString,
+    });
   };
 
   render() {
