@@ -1,6 +1,5 @@
 import * as actionTypes from './actionTypes';
 import axios from '../../axios-orders';
-
 //creates an action to be passed to the reducer
 export const addIngredient = (name) => {
   console.log('[BURGERBUILDER ACTIONS]');
