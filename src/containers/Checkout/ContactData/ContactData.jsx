@@ -4,6 +4,9 @@ import classes from './ContactData.module.css';
 import axios from '../../../axios-orders';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
+import { connect } from 'react-redux';
+import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import * as actions from '../../../store/actions/index';
 
 class ContactData extends Component {
   state = {
@@ -94,7 +97,6 @@ class ContactData extends Component {
         validationKey: {},
       },
     },
-    loading: false,
     formIsValid: false,
   };
 
@@ -120,27 +122,21 @@ class ContactData extends Component {
   orderHandler = async (event) => {
     event.preventDefault();
     const formData = {};
+    //extracts values of the order data from the local state
     for (let formElementIdentifier in this.state.orderForm) {
       formData[formElementIdentifier] = this.state.orderForm[
         formElementIdentifier
       ].value;
     }
-    this.setState({ loading: true });
-    //.json is only used in firebase databases
+    //creates the order object to be pushed into the database
     const order = {
       ingredients: this.props.ingredients,
       //Price usually is being calculated in the back end
       price: this.props.totalPrice,
       orderData: formData,
     };
-    try {
-      const response = await axios.post('/orders.json', order);
-      this.setState({ loading: false });
-      this.props.history.push('/');
-    } catch (e) {
-      console.log(e);
-      this.setState({ loading: false });
-    }
+    //Moves to the async action which then passes into the dispatcher
+    this.props.onOrderBurger(order);
   };
 
   inputChangedHandler = (event, inputIdentifier) => {
@@ -203,18 +199,28 @@ class ContactData extends Component {
       </form>
     );
 
-    if (this.state.loading) {
+    if (this.props.loading) {
       form = <Spinner />;
     }
     return <div className={classes.ContactData}>{form}</div>;
   }
 }
 
-export default ContactData;
+const mapStateToProps = (state) => {
+  return {
+    ingredients: state.burgerBuilder.ingredients,
+    totalPrice: state.burgerBuilder.totalPrice,
+    loading: state.order.loading,
+  };
+};
 
-/* onChange executes this anonymous function while automatically passing an event to it - 
-    then invokes the handler
-    
-  changed={(event) =>
-  this.inputChangedHandler(event, formElement.id)
-*/
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onOrderBurger: (orderData) => dispatch(actions.purchaseBurger(orderData)),
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withErrorHandler(ContactData, axios));

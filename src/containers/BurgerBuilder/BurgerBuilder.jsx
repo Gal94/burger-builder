@@ -7,34 +7,16 @@ import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import WithErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 import { connect } from 'react-redux';
-import * as actionsTypes from '../../store/actions';
-
-const INGREDIENT_PRICES = {
-  salad: 0.5,
-  cheese: 0.4,
-  meat: 1.3,
-  bacon: 0.7,
-};
+import * as actions from '../../store/actions/index';
 
 class BurgerBuilder extends Component {
   state = {
-    purchasable: false,
     purchasing: false,
-    loading: false,
-    error: false,
   };
 
-  // async componentDidMount() {
-  //   try {
-  //     let response = await axios.get(
-  //       'https://burger-project-9a0f3.firebaseio.com/ingredients.json'
-  //     );
-  //     console.log(response);
-  //     this.setState({ ingredients: response.data });
-  //   } catch (e) {
-  //     this.setState({ error: true });
-  //   }
-  // }
+  componentDidMount() {
+    this.props.onInitIngredients();
+  }
 
   purchaseHandler = () => {
     this.setState({ purchasing: true });
@@ -52,7 +34,7 @@ class BurgerBuilder extends Component {
       .reduce((newSum, currentEl) => {
         return currentEl + newSum;
       }, 0);
-    this.setState({ purchasable: sum > 0 });
+    return sum > 0;
   };
 
   //Executes when clicking on the backdrop, returns to main screen
@@ -62,23 +44,10 @@ class BurgerBuilder extends Component {
 
   //Executes when clicking the "ORDER NOW" button
   purchaseContinueHandler = async () => {
-    //Create the parameters query
-    const queryParamas = [];
-    for (let i in this.props.ingredients) {
-      queryParamas.push(
-        encodeURIComponent(i) +
-          '=' +
-          encodeURIComponent(this.props.ingredients[i])
-      );
-    }
-    queryParamas.push('price=' + this.props.totalPrice);
-    //add & after each element in the array when converting to a string
-    const queryString = queryParamas.join('&');
-
+    this.props.onInitPurchased();
     //Forwards page to /checkout
     this.props.history.push({
       pathname: '/checkout',
-      search: '?' + queryString,
     });
   };
 
@@ -92,7 +61,7 @@ class BurgerBuilder extends Component {
 
     //Condition to see if received ingredients data from the database or if there are errors
     let orderSummary = null;
-    let burger = this.state.error ? (
+    let burger = this.props.error ? (
       <p>Ingredients can't be loaded</p>
     ) : (
       <Spinner />
@@ -104,7 +73,7 @@ class BurgerBuilder extends Component {
           <Burger ingredients={this.props.ingredients} />
           <BuildControls
             price={this.props.totalPrice}
-            purchasable={this.state.purchasable}
+            purchasable={this.updatePurchase(this.props.ingredients)}
             purchasing={this.purchaseHandler}
             buttonsInfo={disabledInfo}
             ingredientAdded={this.props.addIngredient}
@@ -123,9 +92,9 @@ class BurgerBuilder extends Component {
       );
     }
 
-    if (this.state.loading) {
-      orderSummary = <Spinner />;
-    }
+    // if (this.state.loading) {
+    //   orderSummary = <Spinner />;
+    // }
 
     return (
       <React.Fragment>
@@ -143,22 +112,22 @@ class BurgerBuilder extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    ingredients: state.ingredients,
-    totalPrice: state.totalPrice,
+    ingredients: state.burgerBuilder.ingredients,
+    totalPrice: state.burgerBuilder.totalPrice,
+    error: state.burgerBuilder.error,
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     addIngredient: (ingredient) => {
-      dispatch({ type: actionsTypes.ADD_INGREDIENT, ingredient: ingredient });
+      dispatch(actions.addIngredient(ingredient));
     },
     removeIngredient: (ingredient) => {
-      dispatch({
-        type: actionsTypes.REMOVE_INGREDIENT,
-        ingredient: ingredient,
-      });
+      dispatch(actions.removeIngredient(ingredient));
     },
+    onInitIngredients: () => dispatch(actions.initIngredients()),
+    onInitPurchased: () => dispatch(actions.purchaseInit()),
   };
 };
 
