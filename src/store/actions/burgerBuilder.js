@@ -2,7 +2,6 @@ import * as actionTypes from './actionTypes';
 import axios from '../../axios-orders';
 //creates an action to be passed to the reducer
 export const addIngredient = (name) => {
-  console.log('[BURGERBUILDER ACTIONS]');
   return {
     type: actionTypes.ADD_INGREDIENT,
     ingredient: name,
@@ -33,9 +32,7 @@ export const fetchIngredientsFailed = () => {
 export const initIngredients = () => {
   return async (dispatch) => {
     try {
-      let response = await axios.get(
-        'https://burger-project-9a0f3.firebaseio.com/ingredients.json'
-      );
+      let response = await axios.get('/ingredients.json');
       if (response) {
         dispatch(setIngredients(response.data));
       } else {
