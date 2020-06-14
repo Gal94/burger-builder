@@ -7,10 +7,11 @@ export const authStart = () => {
   };
 };
 
-export const authSuccess = (authData) => {
+export const authSuccess = (token, userId) => {
   return {
     type: actionTypes.AUTH_SUCCESS,
-    authData: authData,
+    idToken: token,
+    userId: userId,
   };
 };
 
@@ -21,7 +22,7 @@ export const authFail = (error) => {
   };
 };
 
-export const auth = (email, password) => {
+export const auth = (email, password, isSignup) => {
   return async (dispatch) => {
     dispatch(authStart());
     //...Authenticate User
@@ -31,16 +32,23 @@ export const auth = (email, password) => {
       returnSecureToken: true,
     };
     try {
-      const response = await axios.post(
+      let url =
         'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' +
-          process.env.REACT_APP_FIREBASE,
-        authData
-      );
-      console.log(response);
-      dispatch(authSuccess(response.data));
+        process.env.REACT_APP_FIREBASE;
+
+      //Switch to login url
+      if (!isSignup) {
+        url =
+          'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
+          process.env.REACT_APP_FIREBASE;
+      }
+
+      const response = await axios.post(url, authData);
+      console.log(response.data);
+      dispatch(authSuccess(response.data.idToken, response.data.localId));
     } catch (e) {
-      console.log(e);
-      dispatch(authFail(e));
+      console.log(e.response);
+      dispatch(authFail(e.response.data.error));
     }
   };
 };
