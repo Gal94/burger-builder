@@ -63,7 +63,6 @@ export const auth = (email, password, isSignup) => {
       }
 
       const response = await axios.post(url, authData);
-      console.log(response.data);
 
       //current data + expiry times in seconds
       const expirationDate = new Date(
@@ -77,14 +76,12 @@ export const auth = (email, password, isSignup) => {
       dispatch(authSuccess(response.data.idToken, response.data.localId));
       dispatch(checkAuthTimeout(response.data.expiresIn));
     } catch (e) {
-      console.log(e.response);
       dispatch(authFail(e.response.data.error));
     }
   };
 };
 
 export const setAuthRedirectPath = (path) => {
-  console.log(path);
   return {
     type: actionTypes.SET_AUTH_REDIRECT_PATH,
     path: path,

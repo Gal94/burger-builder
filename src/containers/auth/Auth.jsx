@@ -83,7 +83,6 @@ class Auth extends Component {
       isValid = pattern.test(value) && isValid;
     }
 
-    console.log(isValid);
     return isValid;
   }
 
@@ -150,7 +149,7 @@ class Auth extends Component {
     if (this.props.isAuthenticated) {
       authRedirect = <Redirect to={this.props.authRedirectPath} />;
     }
-    
+
     return (
       <div className={classes.Auth}>
         {authRedirect}

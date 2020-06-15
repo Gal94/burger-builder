@@ -34,10 +34,8 @@ export const purchaseBurger = (orderData, token) => {
         '/orders.json?auth=' + token,
         orderData
       );
-      // console.log(response.data);
       dispatch(purchaseBurgerSuccess(response.data.name, orderData));
     } catch (e) {
-      console.log(e);
       dispatch(purchaseBurgerFailed(e));
     }
   };

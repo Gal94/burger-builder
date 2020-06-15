@@ -57,7 +57,6 @@ const reducer = (state = initialState, action) => {
         building: false,
       };
     case actionTypes.FETCH_INGREDIENTS_FAILED:
-      console.log('f');
       return {
         ...state,
         error: true,
