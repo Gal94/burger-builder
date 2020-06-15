@@ -23,6 +23,10 @@ export const authFail = (error) => {
 };
 
 export const logout = () => {
+  //remove the token and expiration time we stored upon logging in
+  localStorage.removeItem('token');
+  localStorage.removeItem('expirationDate');
+  localStorage.removeItem('userId');
   return {
     type: actionTypes.LOG_OUT,
   };
@@ -60,11 +64,53 @@ export const auth = (email, password, isSignup) => {
 
       const response = await axios.post(url, authData);
       console.log(response.data);
+
+      //current data + expiry times in seconds
+      const expirationDate = new Date(
+        new Date().getTime() + response.data.expiresIn * 1000
+      );
+      //stores data on the browser local storage
+      //gets a key as the first argument and a value as a second argument
+      localStorage.setItem('token', response.data.idToken);
+      localStorage.setItem('expirationDate', expirationDate);
+      localStorage.setItem('userId', response.data.localId);
       dispatch(authSuccess(response.data.idToken, response.data.localId));
       dispatch(checkAuthTimeout(response.data.expiresIn));
     } catch (e) {
       console.log(e.response);
       dispatch(authFail(e.response.data.error));
+    }
+  };
+};
+
+export const setAuthRedirectPath = (path) => {
+  console.log(path);
+  return {
+    type: actionTypes.SET_AUTH_REDIRECT_PATH,
+    path: path,
+  };
+};
+
+export const authCheckState = () => {
+  return (dispatch) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      dispatch(logout());
+    } else {
+      const expirationDate = new Date(localStorage.getItem('expirationDate'));
+      if (expirationDate <= new Date()) {
+        dispatch(logout());
+      } else {
+        const userId = localStorage.getItem('userId');
+        dispatch(authSuccess(token, userId));
+        //(expirationDate.getTime() - new Date().getTime())/1000 = the ms difference between expiry time
+        // and right now, will log user out after 1 hour
+        dispatch(
+          checkAuthTimeout(
+            (expirationDate.getTime() - new Date().getTime()) / 1000
+          )
+        );
+      }
     }
   };
 };

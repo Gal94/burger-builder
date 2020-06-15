@@ -134,6 +134,7 @@ class ContactData extends Component {
       //Price usually is being calculated in the back end
       price: this.props.totalPrice,
       orderData: formData,
+      userId: this.props.userId,
     };
     //Moves to the async action which then passes into the dispatcher
     this.props.onOrderBurger(order, this.props.token);
@@ -212,6 +213,7 @@ const mapStateToProps = (state) => {
     totalPrice: state.burgerBuilder.totalPrice,
     loading: state.order.loading,
     token: state.auth.token,
+    userId: state.auth.userId,
   };
 };
 
